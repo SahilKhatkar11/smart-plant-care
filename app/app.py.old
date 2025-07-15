@@ -1,0 +1,466 @@
+import streamlit as st
+import tensorflow as tf
+import sys
+import os
+from datetime import datetime
+
+# Add parent directory to path to import utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.preprocess import load_and_preprocess_image
+
+# Set page config with file size limit
+st.set_page_config(
+    page_title="Smart Plant Care Assistant",
+    page_icon="🌿",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Configure max upload size to 20MB
+st.markdown("""
+    <style>
+        /* File uploader size limit */
+        [data-testid="stFileUploader"] {
+            width: 100%;
+        }
+        [data-testid="stFileUploader"] section {
+            padding: 1rem;
+            border: 2px dashed #2ecc71;
+            border-radius: 10px;
+        }
+        [data-testid="stFileUploader"] small {
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        /* Layout fixes */
+        .block-container {
+            max-width: 1200px;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        /* Main container styles */
+        .main {
+            padding: 1rem;
+            margin: 0 auto;
+        }
+        
+        /* Header styles */
+        .header {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        /* Upload section styles */
+        .upload-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            border: 2px dashed #2ecc71;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-container:hover {
+            border-color: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        .upload-text {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Sidebar styles */
+        .sidebar-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Developer info styles */
+        .developer-info {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .developer-info h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #2ecc71;
+            padding-bottom: 0.5rem;
+        }
+        
+        .developer-info p {
+            color: #2c3e50;
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+        }
+        
+        /* How it works styles */
+        .how-it-works {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .how-it-works h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #2ecc71;
+            padding-bottom: 0.5rem;
+        }
+        
+        .how-it-works ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .how-it-works li {
+            color: #2c3e50;
+            margin: 0.8rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 1.1rem;
+        }
+        
+        .how-it-works li:before {
+            content: "•";
+            color: #2ecc71;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Image preview styles */
+        .image-preview {
+            max-width: 100%;
+            margin: 1rem 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Loading animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2ecc71;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        
+        .loading-text {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        /* Results box styles */
+        .results-box {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #2ecc71;
+        }
+        
+        .results-box.unhealthy {
+            border-left-color: #e74c3c;
+        }
+        
+        .results-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .results-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        
+        .results-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .results-content {
+            color: #34495e;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .suggestion-item {
+            display: flex;
+            align-items: flex-start;
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .suggestion-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            min-width: 30px;
+        }
+        
+        .suggestion-text {
+            flex: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .upload-container {
+                padding: 1rem;
+            }
+            
+            .upload-text {
+                font-size: 1rem;
+            }
+            
+            .sidebar-content {
+                padding: 1rem;
+            }
+            
+            .developer-info, .how-it-works {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .developer-info h3, .how-it-works h3 {
+                font-size: 1.1rem;
+            }
+            
+            .developer-info p, .how-it-works li {
+                font-size: 1rem;
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2ecc71;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #27ae60;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Set max upload size to 20MB
+st.session_state.max_upload_size = 20 * 1024 * 1024  # 20MB in bytes
+
+# Load the model
+@st.cache_resource
+def load_model():
+    model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                             'model', 'plant_health_model.h5')
+    if not os.path.exists(model_path):
+        st.error("❌ Model file not found! Please train the model first.")
+        return None
+    return tf.keras.models.load_model(model_path)
+
+def get_care_suggestions(health_status):
+    if health_status:
+        return [
+            {"icon": "💧", "text": "Continue with regular watering schedule"},
+            {"icon": "☀️", "text": "Maintain current sunlight exposure"},
+            {"icon": "✂️", "text": "Regular pruning to maintain health"},
+            {"icon": "👀", "text": "Monitor for any changes in leaf color"},
+            {"icon": "🌱", "text": "Consider fertilizing every 2-3 months"}
+        ]
+    else:
+        return [
+            {"icon": "💧", "text": "Check soil moisture and adjust watering"},
+            {"icon": "☀️", "text": "Ensure proper sunlight exposure"},
+            {"icon": "✂️", "text": "Remove affected leaves"},
+            {"icon": "🧪", "text": "Consider organic pest control if needed"},
+            {"icon": "📊", "text": "Monitor new growth for improvement"},
+            {"icon": "🌡️", "text": "Check temperature and humidity levels"}
+        ]
+
+def main():
+    # Sidebar content
+    with st.sidebar:
+        st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)
+        st.title("🌿 Smart Plant Care")
+        st.write("Upload a photo of your plant to check its health status and get care recommendations.")
+        
+        # Developer information
+        st.markdown('<div class="developer-info">', unsafe_allow_html=True)
+        st.markdown("### 👨‍💻 Developer")
+        st.write("Created by Sahil Khatkar")
+        st.write("Microsoft AI & Azure Intern")
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # How it works section
+        st.markdown('<div class="how-it-works">', unsafe_allow_html=True)
+        st.markdown("### 🔍 How It Works")
+        st.markdown("""
+        1. Upload a clear photo of your plant
+        2. Our AI analyzes the image
+        3. Get instant health assessment and care tips
+        """)
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # Main content
+    st.markdown('<div class="main">', unsafe_allow_html=True)
+    
+    # Header
+    st.markdown('<div class="header">', unsafe_allow_html=True)
+    st.markdown('<h1>🌿 Plant Health Analysis</h1>', unsafe_allow_html=True)
+    st.markdown('<p>Get instant insights about your plant\'s health</p>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Create three columns for better layout
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        # File uploader
+        st.markdown('<div class="upload-container">', unsafe_allow_html=True)
+        st.markdown('<p class="upload-text">Upload a photo of your plant to get instant analysis!</p>', unsafe_allow_html=True)
+        uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+        st.markdown('<p style="color: #666; font-size: 0.9rem;">(Maximum file size: 20MB)</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        if uploaded_file is not None:
+            # Check file size
+            if len(uploaded_file.getvalue()) > st.session_state.max_upload_size:
+                st.error("❌ File size exceeds 20MB limit. Please upload a smaller image.")
+                return
+
+            # Display image preview
+            st.markdown('<div class="image-preview">', unsafe_allow_html=True)
+            st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            # Show loading animation
+            with st.spinner('🔍 Analyzing your plant...'):
+                # Load and preprocess the image
+                try:
+                    img = load_and_preprocess_image(uploaded_file)
+                except Exception as e:
+                    st.error(f"❌ Error processing image: {str(e)}")
+                    return
+
+                # Load the model
+                model = load_model()
+                if model is None:
+                    return
+
+                # Make prediction
+                prediction = model.predict(img)
+                health_status = bool(prediction[0][0] > 0.5)
+                confidence = float(prediction[0][0] if health_status else 1 - prediction[0][0])
+
+            # Display results in styled box
+            status_color = "healthy" if health_status else "unhealthy"
+            st.markdown(f'<div class="results-box {status_color}">', unsafe_allow_html=True)
+            
+            # Results header
+            st.markdown('<div class="results-header">', unsafe_allow_html=True)
+            icon = "🌿" if health_status else "🚫"
+            status_text = "Healthy" if health_status else "Needs Attention"
+            st.markdown(f'<span class="results-icon">{icon}</span>', unsafe_allow_html=True)
+            st.markdown(f'<h2 class="results-title">Plant Status: {status_text}</h2>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Results content
+            st.markdown('<div class="results-content">', unsafe_allow_html=True)
+            st.write(f"Confidence: {confidence:.2%}")
+            
+            # Care suggestions
+            st.markdown("### 💡 Care Suggestions")
+            suggestions = get_care_suggestions(health_status)
+            for suggestion in suggestions:
+                st.markdown(
+                    f'<div class="suggestion-item">'
+                    f'<span class="suggestion-icon">{suggestion["icon"]}</span>'
+                    f'<span class="suggestion-text">{suggestion["text"]}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main() 
