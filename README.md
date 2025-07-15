@@ -56,19 +56,30 @@ The **Smart Plant Care Assistant** aims to support home gardeners, farmers, and 
 
 ```
 smart-plant-care/
-├── data/
-│   ├── healthy/              # Images of healthy leaves
-│   └── unhealthy/            # Images of unhealthy/diseased leaves
-├── model/
+├── app/                      # Main application directory
+│   ├── components/          # UI components
+│   │   ├── __init__.py     # Components package initialization
+│   │   ├── header.py       # Header component
+│   │   ├── sidebar.py      # Sidebar component
+│   │   └── results.py      # Results and suggestions component
+│   ├── styles/             # CSS styles
+│   │   ├── __init__.py     # Styles package initialization
+│   │   └── main.css        # Main CSS styles
+│   ├── utils/              # Application utilities
+│   │   ├── __init__.py     # Utils package initialization
+│   │   └── model_utils.py  # Model loading and analysis
+│   └── main.py             # Main application entry point
+├── data/                    # Data directory
+│   ├── healthy/            # Images of healthy leaves
+│   └── unhealthy/          # Images of unhealthy/diseased leaves
+├── model/                   # Model directory
 │   └── plant_health_model.h5 # Saved trained model
-├── notebooks/
-│   └── train_model.ipynb     # Jupyter notebook to train model
-├── app/
-│   └── app.py                # Streamlit app UI
-├── utils/
-│   └── preprocess.py         # Image loading & preprocessing (optional)
-├── requirements.txt          # Python dependencies
-└── README.md                 # Project documentation
+├── notebooks/              # Jupyter notebooks
+│   └── train_model.ipynb   # Model training notebook
+├── utils/                  # Global utilities
+│   └── preprocess.py       # Image preprocessing utilities
+├── requirements.txt        # Python dependencies
+└── README.md              # Project documentation
 ```
 
 ---
@@ -136,7 +147,7 @@ Train and export the model to `model/plant_health_model.h5`.
 ### 6. Run the App
 
 ```bash
-streamlit run app/app.py
+streamlit run app/main.py
 ```
 
 ---
