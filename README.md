@@ -2,7 +2,7 @@
 
 An AI-powered plant health monitoring tool that helps users detect plant diseases and suggests care actions using simple image classification techniques — built entirely **locally** using Python, TensorFlow, and Streamlit.
 
-> 🔧 Built for: Microsoft AI + Azure (Edunet Foundation) Internship
+> 🔧 Built for: Microsoft AI + Azure (Edunet Foundation) Internship  
 > 🚫 No cloud dependencies (runs 100% locally)
 
 ---
@@ -12,11 +12,11 @@ An AI-powered plant health monitoring tool that helps users detect plant disease
 * [About the Project](#about-the-project)
 * [Features](#features)
 * [Tech Stack](#tech-stack)
+* [Screenshots](#screenshots)
 * [Folder Structure](#folder-structure)
 * [How It Works](#how-it-works)
 * [Setup Instructions](#setup-instructions)
 * [How to Use](#how-to-use)
-* [Screenshots](#screenshots)
 * [Future Scope](#future-scope)
 * [Credits](#credits)
 
@@ -49,6 +49,73 @@ The **Smart Plant Care Assistant** aims to support home gardeners, farmers, and 
 | UI Interface   | Streamlit                                                                     |
 | Dataset Source | [PlantVillage - Kaggle](https://www.kaggle.com/datasets/emmarex/plantdisease) |
 | Others         | NumPy, Pandas, Matplotlib                                                     |
+
+---
+
+## 📸 Screenshots
+
+Here are some screenshots showcasing the application's features and interface:
+
+### 1. Home Page & Upload Interface
+<table>
+   <tr>
+      <td align="center">
+         <img src="https://imgur.com/3ik8p6t.png" alt="Home Page" width="600"/>
+      </td>
+   </tr>
+   <tr>
+      <td align="center">
+         <em>Home page showing the plant health analysis dashboard</em>
+      </td>
+   </tr>
+</table>
+
+### 2. Image Upload
+<table>
+   <tr>
+      <td>
+         <img src="https://imgur.com/x3qacpa.png" alt="Image Upload" width="300"/>
+      </td>
+      <td>
+         <img src="https://imgur.com/Z19oZax.png" alt="Upload Image" width="300"/>
+      </td>
+   </tr>
+   <tr>
+      <td colspan="2" align="center">
+         <em>Upload an image of a plant leaf for health analysis</em>
+      </td>
+   </tr>
+</table>
+
+### 3. Care Suggestions
+<table>
+   <tr>
+      <td align="center">
+         <img src="https://imgur.com/nSRirxD.png" alt="Healthy" width="300"/>
+         <br/>
+         <em>Healthy Leaf Results</em>
+      </td>
+      <td align="center">
+         <img src="https://imgur.com/52UIDIg.png" alt="UnHealthy" width="300"/>
+         <br/>
+         <em>Unhealthy Leaf Results</em>
+      </td>
+   </tr>
+</table>
+
+### 4. Sidebar Navigation
+<table>
+   <tr>
+      <td align="center">
+         <img src="https://imgur.com/44xzhnh.png" alt="Sidebar Navigation" width="300"/>
+      </td>
+   </tr>
+   <tr>
+      <td align="center">
+         <em>Sidebar navigation for quick access to app sections</em>
+      </td>
+   </tr>
+</table>
 
 ---
 
@@ -87,16 +154,17 @@ smart-plant-care/
 ## ⚙️ How It Works
 
 1. **Image Collection**
-   You gather images of plant leaves labeled as `healthy` or `unhealthy`.
+   - You gather images of plant leaves labeled as `healthy` or `unhealthy`
 
 2. **Model Training**
-   A CNN model is trained using TensorFlow on this dataset.
+   - A CNN model is trained using TensorFlow on this dataset
 
 3. **Prediction**
-   The Streamlit app allows users to upload a leaf image. The model predicts the health status and gives suggestions.
+   - The Streamlit app allows users to upload a leaf image
+   - The model predicts the health status and gives suggestions
 
 4. **Suggestion Engine**
-   Based on the output class (healthy/unhealthy), a care suggestion is shown to the user.
+   - Based on the output class (healthy/unhealthy), a care suggestion is shown to the user
 
 ---
 
@@ -154,21 +222,11 @@ streamlit run app/main.py
 
 ## 🧑‍🌾 How to Use
 
-1. Run the app.
-2. Upload an image of a plant leaf.
-3. View the predicted result (Healthy / Unhealthy).
-4. Read suggested care actions.
-5. Optionally, enter light or moisture details for more accurate tips.
-
----
-
-## 🖼️ Screenshots (You can add later)
-
-```
-[Image 1: App Upload Page]
-[Image 2: Prediction Result]
-[Image 3: Suggestions Shown]
-```
+1. Run the app using `streamlit run app/main.py`
+2. Upload an image of a plant leaf through the web interface
+3. View the predicted result (Healthy / Unhealthy)
+4. Read suggested care actions
+5. Optionally, enter light or moisture details for more accurate tips
 
 ---
 
