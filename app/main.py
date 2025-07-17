@@ -1,6 +1,8 @@
 """Main application file for the Smart Plant Care app."""
 import os
 import streamlit as st
+from PIL import Image
+import io
 from components.header import render_header
 from components.sidebar import render_sidebar
 from components.results import render_results
@@ -13,125 +15,234 @@ st.set_page_config(
     layout="wide"
 )
 
-# Hide Streamlit elements and remove spacing
+# Configure page styling
 st.markdown("""
     <style>
+        /* Reset Streamlit styles */
+        .stApp {
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+        }
+        
+        .stMarkdown {
+            color: #1a365d !important;
+        }
+        
+        /* Hide Streamlit components */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .stDeployButton {display: none;}
         header {visibility: hidden;}
-        .appview-container {margin: 0; padding: 0;}
-        .css-1544g2n {padding: 0 !important;}
-        .css-1y4p8pa {padding: 0 !important;}
-        .css-18e3th9 {padding: 0 !important;}
-        .block-container {padding: 0; max-width: 100%;}
-        section[data-testid="stSidebarContent"] {padding-top: 1rem;}
         div[data-testid="stToolbar"] {display: none;}
         div[data-testid="stDecoration"] {display: none;}
         div[data-testid="stStatusWidget"] {display: none;}
-        #root > div:nth-child(1) > div > div > div {gap: 0;}
+        
+        /* Main content styling */
+        .main .block-container {
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+        
+        /* Upload container */
+        .upload-container {
+            background: linear-gradient(135deg, #e6f4ff 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 15px rgba(0, 118, 255, 0.1);
+            border: 2px solid #e1effe;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 118, 255, 0.15);
+        }
+        
+        /* File uploader */
+        .stFileUploader {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .stFileUploader > div {
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%) !important;
+            border: 2px dashed #60a5fa !important;
+            border-radius: 12px !important;
+            padding: 2rem !important;
+            color: #2563eb !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .stFileUploader > div:hover {
+            border-color: #2563eb !important;
+            background: linear-gradient(135deg, #e6f4ff 0%, #ffffff 100%) !important;
+            transform: scale(1.02);
+        }
+        
+        .stFileUploader > div > div {
+            color: #2563eb !important;
+        }
+        
+        /* Results container */
+        .results-container {
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 118, 255, 0.1);
+            border: 2px solid #e1effe;
+        }
+        
+        /* Two-column layout */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        /* Image preview */
+        .image-preview {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 118, 255, 0.1);
+            background: white;
+            padding: 0.75rem;
+            border: 2px solid #e1effe;
+            transition: all 0.3s ease;
+        }
+        
+        .image-preview:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 118, 255, 0.15);
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+        
+        /* Analysis results */
+        .analysis-results {
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 2px solid #e1effe;
+            box-shadow: 0 4px 15px rgba(0, 118, 255, 0.1);
+        }
+        
+        /* Error message */
+        .stAlert {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+            border-radius: 12px !important;
+            border: 2px solid #fecaca !important;
+            padding: 1rem !important;
+            margin: 1rem 0 !important;
+        }
+        
+        /* Loading spinner */
+        .stSpinner > div {
+            border-color: #2563eb !important;
+            border-right-color: transparent !important;
+        }
+        
+        /* Button styles */
+        .stButton > button {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 1.5rem !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .stButton > button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-preview {
+                max-width: 300px;
+                margin: 0 auto;
+            }
+            
+            .main .block-container {
+                padding: 1rem;
+            }
+        }
     </style>
 """, unsafe_allow_html=True)
-
-# Load CSS
-with open(os.path.join(os.path.dirname(__file__), 'styles', 'main.css'), 'r') as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-# Set max upload size to 20MB
-st.session_state.max_upload_size = 20 * 1024 * 1024  # 20MB in bytes
 
 def main():
     """Main function to run the Streamlit app."""
     # Render sidebar
     render_sidebar()
-
-    # Main content container
-    st.markdown('<div class="main">', unsafe_allow_html=True)
     
-    # Render header
-    render_header()
-
+    # Main content
+    st.markdown('<div class="upload-container">', unsafe_allow_html=True)
+    st.markdown("""
+        <h1 style="font-size: 2rem; font-weight: 700; color: #1e40af; margin-bottom: 1rem;">
+            🌿 Plant Health Analysis
+        </h1>
+        <p style="font-size: 1.1rem; color: #3b82f6; max-width: 600px; margin: 0 auto 1.5rem; line-height: 1.6;">
+            Upload a photo of your plant and let our AI analyze its health status.
+        </p>
+    """, unsafe_allow_html=True)
+    
     # File uploader
     uploaded_file = st.file_uploader(
-        "Upload plant image",
-        type=['jpg', 'jpeg', 'png'],
-        key="plant_upload",
-        label_visibility="collapsed"
+        "Upload a photo of your plant",
+        type=['jpg', 'jpeg', 'png']
     )
-
-    # Custom upload UI
-    st.markdown("""
-        <div class="upload-container" id="upload-container">
-            <h2 class="upload-title">Drop your plant photo here or click to browse</h2>
-            <div class="upload-area" onclick="document.querySelector('.stFileUploader input[type=\'file\']').click()">
-                <div class="upload-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 16L8 12M12 8L8 12M8 12L12 16M8 12H20M20 12V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <p class="upload-instructions">Drag and drop file here</p>
-                <p class="upload-limits">Limit 20MB per file • JPG, JPEG, PNG</p>
-            </div>
-            <div class="upload-requirements">
-                <div class="upload-requirement">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Clear, well-lit photo
-                </div>
-                <div class="upload-requirement">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Max size: 20MB
-                </div>
-                <div class="upload-requirement">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    JPG, JPEG, PNG
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # Handle uploaded file
     if uploaded_file is not None:
-        st.markdown('<div class="results-container">', unsafe_allow_html=True)
-        # Check file size
-        if len(uploaded_file.getvalue()) > st.session_state.max_upload_size:
-            st.error("❌ File size exceeds 20MB limit. Please upload a smaller image.")
-            return
-
-        # Display image preview
-        st.markdown('<div class="image-preview">', unsafe_allow_html=True)
-        st.image(uploaded_file, caption="Uploaded Plant Image", use_column_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        # Show loading animation and analyze image
-        with st.spinner('🔍 Analyzing your plant...'):
-            health_status, confidence = analyze_image(uploaded_file)
+        try:
+            # Create a copy of the file in memory
+            image_bytes = uploaded_file.getvalue()
+            image = Image.open(io.BytesIO(image_bytes))
             
-            if health_status is not None and confidence is not None:
+            # Display image and results in a two-column layout
+            st.markdown('<div class="results-grid">', unsafe_allow_html=True)
+            
+            # Column 1: Image Preview
+            st.markdown('<div class="image-preview">', unsafe_allow_html=True)
+            st.image(image, use_column_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Column 2: Analysis Results
+            with st.spinner('🔍 Analyzing your plant...'):
+                # Analyze the image
+                health_status, confidence = analyze_image(image)
+                
                 # Render results
+                st.markdown('<div class="analysis-results">', unsafe_allow_html=True)
                 render_results(health_status, confidence)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # Footer
-    st.markdown("""
-        <footer class="footer">
-            <div class="footer-content">
-                v1.0.0 • Made with 
-                <span class="footer-heart">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </span>
-            </div>
-        </footer>
-    """, unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        except Exception as e:
+            st.error(f"Error processing image: {str(e)}")
 
 if __name__ == "__main__":
     main() 
