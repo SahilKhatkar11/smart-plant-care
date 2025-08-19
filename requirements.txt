@@ -10,3 +10,8 @@ pillow==9.5.0
 jupyter==1.0.0
 scikit-learn==1.2.2
 typing_extensions==4.5.0
+python-magic==0.4.27
+imghdr2==1.0.1
+filetype==1.2.0
+tifffile==2023.7.10
+imageio==2.31.1
