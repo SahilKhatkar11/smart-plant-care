@@ -44,14 +44,14 @@ ENV/
 .idea_modules/
 
 # Machine Learning
-*.h5
-*.hdf5
-*.pkl
-*.model
-*.joblib
-*.pt
-*.pth
-*.onnx
+# *.h5
+# *.hdf5
+# *.pkl
+# *.model
+# *.joblib
+# *.pt
+# *.pth
+# *.onnx
 wandb/
 runs/
 logs/
@@ -88,8 +88,8 @@ Thumbs.db
 # Large files and directories (customize based on your needs)
 data/*
 !data/.gitkeep
-model/*
-!model/.gitkeep
+# model/*
+# !model/.gitkeep
 
 # Logs and temporary files
 *.log
