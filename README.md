@@ -173,7 +173,7 @@ smart-plant-care/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/smart-plant-care.git
+git clone https://github.com/SahilKhatkar11/smart-plant-care.git
 cd smart-plant-care
 ```
 
