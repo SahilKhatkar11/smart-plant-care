@@ -365,7 +365,8 @@ def render_sidebar():
                 <p class="developer-info">Created by Sahil Khatkar<br>Microsoft AI & Azure Intern</p>
                 <a href="https://github.com/SahilKhatkar11" target="_blank" rel="noopener" class="github-link">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <img src="https://i.ibb.co/fz0x8SQK/25231.png"/>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"/>
+                        <path d="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"/>
                     </svg>
                     <span>View on GitHub</span>
                 </a>
